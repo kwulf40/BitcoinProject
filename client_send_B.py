@@ -1,4 +1,5 @@
 import pathlib
+import fileinput
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -30,11 +31,8 @@ def getClientAccountInfo():
     if activeBalanceB.mode == 'r':
         accountNumList = []
         for account in activeBalanceB:
-
-            print(account)
             acctNum = account.split(":")
             accountNumList.append(acctNum[0])
-            print("Read in from file test: " + acctNum[0] + "\n")
     else:
         print("Error with file")
     
@@ -46,6 +44,56 @@ def getClientAccountInfo():
     else:
         activeBalanceB.close()
         return accountNumList
+
+
+def verifyBalance(payer, txAmount):
+    totalAmount = txAmount + 2
+
+    clientBFile = pathlib.Path("balanceB.txt")
+    if clientBFile.exists():
+        activeBalanceB = open(clientBFile, "r")
+    if activeBalanceB.mode == 'r':
+        for account in activeBalanceB:
+            acctVar = account.split(":")
+            if acctVar[0] == payer:
+                unconfirmedBal = int(acctVar[1], 16)
+                checkBalance = unconfirmedBal - totalAmount
+                if checkBalance < 0:
+                    print("Not enough funds in Account: " + payer)
+                    return 0
+                else:
+                    return 1
+            else:
+                pass
+        return 0
+    else:
+        print("Error with file")
+
+def reduceUnconfirmedBal(payer, txAmount):
+    totalTxAmount = txAmount + 2
+    modifiedFlag = 0
+    modifiedBalance = "balanceB.txt"
+    with fileinput.FileInput(modifiedBalance, inplace=True, backup='.bak') as file:
+        for line in file:
+            tempAcctInfo = str(line)
+            acctVar = line.split(":")
+            if acctVar[0] == payer:
+                newAcctVar = []
+                unconfirmedBal = int(acctVar[1], 16)
+                newBal = unconfirmedBal - totalTxAmount
+                newAcctVar.append(payer)
+                newAcctVar.append(str('%08X' % newBal))
+                newAcctVar.append(acctVar[2])
+                newAcctInfo = (newAcctVar[0] + ":" + newAcctVar[1] + ":" + newAcctVar[2])
+                print(line.replace(tempAcctInfo, newAcctInfo), end='')
+                modifiedFlag = 1
+            else:
+                print(line, end='')
+    file.close()
+    if modifiedFlag:
+        return 1
+    else:
+        return 0
 
 
 def newTransaction():
@@ -70,23 +118,50 @@ def newTransaction():
     print("Getting Account Numbers\n")
     accounts = getClientAccountInfo()
 
+    x = 1
     for ID in accounts:
-        print("Account Number: " + ID + "\n")
+        print("Account Number: " + ID)
+        x += 1
 
     payerAcct = input("Select a Payer Account:")
     payerAcct = int(payerAcct)
     payer = accounts[payerAcct - 1]
 
-    print("Requesting Payee Accounts")
+    print("Requesting Payee Accounts\n")
     message = "Request F1 Accounts"
     clientSocket.sendto(message.encode(),(serverName, serverPort))
     returnedAccounts, serverAddress = clientSocket.recvfrom(2048)
     returnedAccounts = returnedAccounts.decode()
     payeeAccounts = returnedAccounts.split(":")
 
+    y = 1
     for ID in payeeAccounts:
-        print("Account Number: " + ID + "\n")
-        
+        print("Account Number: " + ID)
+        y += 1
+
+    payeeAcct = input("Select a Payee Account:")
+    payeeAcct = int(payeeAcct)
+    payee = payeeAccounts[payeeAcct - 1]
+
+    txAmount = input("Input Transaction Amount: ")
+    txAmount = int(txAmount)
+    
+    txHex = str(payer) + str(payee) + str('%08X' % txAmount)
+    verify = verifyBalance(payer, txAmount)
+    if verify:
+        complete = reduceUnconfirmedBal(payer, txAmount)
+        if complete:
+            unconfirmedTxBFile = pathlib.Path("Unconfirmed_TxB.txt")
+            newUnconfirmed = open(unconfirmedTxBFile, "w+")
+            newUnconfirmed.write(txHex + "\n")
+            newUnconfirmed.close()
+            clientSocket.sendto(txHex.encode(), (serverName, serverPort))
+            print("Tx Complete")
+        else:
+            print("Tx Failed")
+    else:
+        print("Verify Failed")
+
 
 # Prints the account name, unconfirmed balance, and confirmed balance
 # for each account in balanceB.txt
@@ -109,8 +184,8 @@ def currentBalance():
             #Print account name
             #print unconfirmed balance
             #print confirmed balance
-            print("Account Number: " + acctVar[0] + "\n")
-            print("Uncomfirmed Balance: " + str(unconfirmedBal) + "\n")
+            print("Account Number: " + acctVar[0])
+            print("Uncomfirmed Balance: " + str(unconfirmedBal))
             print("Comfirmed Balance: " + str(confirmedBal) + "\n")
         return 1
     else:

@@ -75,7 +75,7 @@ def main():
         # 
         # If transaction, call processTX()
         # If else is block, call processBlock()
-
+        transactionCheck = re.match(r'([A-B])([0]{6})([1-2])', incomingMessage)
         serverRequest = re.search("Request F1 Accounts", incomingMessage)
         localRequest = re.search("Request Client B Accounts", incomingMessage)
         if serverRequest != None:
@@ -88,6 +88,9 @@ def main():
             acctString = requestClientAccounts()
             print("Sending accounts to F1")
             serverSocket.sendto(acctString, clientAddress)
+        elif transactionCheck != None:
+            print("Received Tx!")
+            print(incomingMessage)
         else:
             pass
 
