@@ -1,3 +1,4 @@
+import pathlib
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -12,10 +13,38 @@ clientSocket = socket(AF_INET, SOCK_DGRAM)
 #
 def getClientAccountInfo():
     #open balanceB.txt
+    clientBFile = pathlib.Path("balanceB.txt")
+    if clientBFile.exists():
+        activeBalanceB = open(clientBFile, "r")
+    else:
+        #creates a new initial file if one doesn't exist
+        initialBalanceB = open(clientBFile, "w+")
+        initialBalanceB.write("B0000001:000003E8:000003E8\n")
+        initialBalanceB.write("B0000002:000003E8:000003E8\n")
+        initialBalanceB.close()
+
+        activeBalanceB = open(clientBFile, "r")
+
     #extract user account from each line
-    #store user accounts in an array
-    #return array
-    pass
+    #stores user accounts in a list
+    if activeBalanceB.mode == 'r':
+        accountNumList = []
+        for account in activeBalanceB:
+
+            print(account)
+            acctNum = account.split(":")
+            accountNumList.append(acctNum[0])
+            print("Read in from file test: " + acctNum[0] + "\n")
+    else:
+        print("Error with file")
+    
+    #return list
+    if not accountNumList:
+        print ("Error in creating account lists")
+        activeBalanceB.close()
+        return 0
+    else:
+        return accountNumList
 
 
 #   sendClientAccountInfo
@@ -30,11 +59,7 @@ def sendClientAccountInfo():
 
 
 def newTransaction():
-    message = "Send TX to block."
-    clientSocket.sendto(message.encode(), (serverName, serverPort))
-    returnMessage, serverAddress = clientSocket.recvfrom(2048)
-    print("Message from Full Block: " + returnMessage.decode())
-        #=========================================
+#=========================================
     #   To create a new Tx:
     #
     #   call getClientAccountInfo
@@ -51,6 +76,11 @@ def newTransaction():
     #   Store Tx information in variable as 12-byte hex
     #   Append tx to Unconfirmed_TxB.txt
     #   Send tx to F2 node
+
+    print("Getting Account Numbers\n")
+    accounts = getClientAccountInfo()
+    for ID in accounts:
+        print("Account Number: " + ID + "\n")
 
 
 def currentBalance():

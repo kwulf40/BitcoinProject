@@ -1,3 +1,4 @@
+import pathlib
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -8,14 +9,42 @@ clientSocket = socket(AF_INET, SOCK_DGRAM)
 
 #   getClientAccountInfo()
 #   reads account names from the balanceA.txt 
-#   and returns them as an array
+#   and returns them as a list
 #
 def getClientAccountInfo():
     #open balanceA.txt
+    clientAFile = pathlib.Path("balanceA.txt")
+    if clientAFile.exists():
+        activeBalanceA = open(clientAFile, "r")
+    else:
+        #creates a new initial file if one doesn't exist
+        initialBalanceA = open(clientAFile, "w+")
+        initialBalanceA.write("A0000001:000003E8:000003E8\n")
+        initialBalanceA.write("A0000002:000003E8:000003E8\n")
+        initialBalanceA.close()
+
+        activeBalanceA = open(clientAFile, "r")
+
     #extract user account from each line
-    #store user accounts in an array
-    #return array
-    pass
+    #stores user accounts in a list
+    if activeBalanceA.mode == 'r':
+        accountNumList = []
+        for account in activeBalanceA:
+
+            print(account)
+            acctNum = account.split(":")
+            accountNumList.append(acctNum[0])
+            print("Read in from file test: " + acctNum[0] + "\n")
+    else:
+        print("Error with file")
+    
+    #returns list
+    if not accountNumList:
+        print ("Error in creating account lists")
+        activeBalanceA.close()
+        return 0
+    else:
+        return accountNumList
 
 
 #   sendClientAccountInfo
@@ -30,11 +59,7 @@ def sendClientAccountInfo():
 
 
 def newTransaction():
-    message = "Send TX to block."
-    clientSocket.sendto(message.encode(), (serverName, serverPort))
-    returnMessage, serverAddress = clientSocket.recvfrom(2048)
-    print("Message from Full Block: " + returnMessage.decode())
-    #=========================================
+        #=========================================
     #   To create a new Tx:
     #
     #   call getClientAccountInfo
@@ -51,6 +76,12 @@ def newTransaction():
     #   Store Tx information in variable as 12-byte hex
     #   Append tx to Unconfirmed_TxA.txt
     #   Send tx to F1 node
+
+    print("Getting Account Numbers\n")
+    accounts = getClientAccountInfo()
+    for ID in accounts:
+        print("Account Number: " + ID + "\n")
+
 
 
 def currentBalance():
