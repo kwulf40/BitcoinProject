@@ -71,24 +71,33 @@ def main():
         incomingMessage = message.decode()
 
         #
-        # Check if the message is a transaction or a block (format)
-        # 
-        # If transaction, call processTX()
-        # If else is block, call processBlock()
+        # regex function calls to identify the incoming message.
+        #
+        # transationCheck will be true if the first 8 digits of the incoming message are 
+        # in the format of a client account, signaling an incoming transactions
+        #
+        # serverRequest will be true if the message is a request from Client B for the F1 client A accounts
+        #
+        # localRequest will be true if the message is a request from F1 for the local Client B accounts 
         transactionCheck = re.match(r'([A-B])([0]{6})([1-2])', incomingMessage)
         serverRequest = re.search("Request F1 Accounts", incomingMessage)
         localRequest = re.search("Request Client B Accounts", incomingMessage)
-        if serverRequest != None:
+
+        #if-elif to check the true-false value of each message checks
+        #if serverRequest is true, get client A accounts from F1 and send to client B
+        if serverRequest:
             print("Requesting Clients From F1")
             acctString = requestAccountsF1()
             print("Sending Accounts to Client B")
             serverSocket.sendto(acctString, clientAddress)
-        elif localRequest != None:
+        #if localRequest is true, get client B accounts from local and send to F1
+        elif localRequest:
             print("Getting accounts from Client B")
             acctString = requestClientAccounts()
             print("Sending accounts to F1")
             serverSocket.sendto(acctString, clientAddress)
-        elif transactionCheck != None:
+        #if transactionCheck is true, the message is tx information to be stored in temp_TxB.txt    
+        elif transactionCheck:
             print("Received Tx!")
             print(incomingMessage)
         else:

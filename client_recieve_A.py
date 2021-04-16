@@ -82,8 +82,16 @@ def main():
         message, clientAddress = serverSocket.recvfrom(2048)
         incomingMessage = message.decode()
         
+        #
+        # regex function calls to identify incoming message
+        #
+        # accountInfoRequest will be true if the incoming message is a request for the Client A accounts from F1
+        #
         accountInfoRequest = re.search("Request Client A Accounts", incomingMessage)
-        if accountInfoRequest != None:
+
+        #if-elif to check the true-false value of each message checks
+        #if accountInfoRequest is true, sends client A account info to F1
+        if accountInfoRequest:
             accountString = sendClientAccountInfo()
             serverSocket.sendto(accountString.encode(), clientAddress)
             print("Client A Info Sent")

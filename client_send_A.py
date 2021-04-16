@@ -46,6 +46,13 @@ def getClientAccountInfo():
         return accountNumList
 
 
+#
+#   VerifyBalance takes the payer account and the amount of the transaction,
+#   adds the transaction fee, and checks if the value can be subtracted from
+#   the account's uncomfirmed balance safely.
+#
+#   returns 1 if the tx is verified, 0 if it fails and prints an error message
+#
 def verifyBalance(payer, txAmount):
     totalAmount = txAmount + 2
 
@@ -69,6 +76,18 @@ def verifyBalance(payer, txAmount):
     else:
         print("Error with file")
 
+
+#
+#   takes the payer account to be reduced, and the amount of the input transaction 
+#   as parameters 
+#   
+#   Opens the client balance file, uses fileInput to read each line of the file until we find the 
+#   account that will be modified. After the account is found, the transaction amount plus fee is 
+#   subtracted from the unconfirmed balance, and the file is modified with the new amount
+#
+#   If the file is succesfully modified, the function returns 1.
+#   If an error is encountered, reutrns 0.
+#
 def reduceUnconfirmedBal(payer, txAmount):
     totalTxAmount = txAmount + 2
     modifiedFlag = 0
@@ -107,17 +126,19 @@ def newTransaction():
     #   List retrieved account names to user to select as payee
     #
     #   User enters transaction amount
-    #   Check if user entered amount + fee is more than payer account(unconfirmed balance)
-    #   If true, break
-    #   If not true, subtract amount + fee from unconfirmed balance
+    #   Check if user entered amount + fee is greater than amount in payer account(unconfirmed balance)
+    #   If verify succeeds, subtract amount + fee from unconfirmed balance
+    #   If verify fails, print error message
     #
     #   Store Tx information in variable as 12-byte hex
-    #   Append tx to Unconfirmed_TxA.txt
+    #   Write tx to Unconfirmed_TxA.txt
     #   Send tx to F1 node
 
+    #   call getClientAccountInfo
     print("Getting Account Numbers\n")
     payerAccounts = getClientAccountInfo()
 
+    #   List to user and they select an account as payer
     x = 1
     for ID in payerAccounts:
         print(str(x) + "." + " Account Number: " + ID)
@@ -127,6 +148,7 @@ def newTransaction():
     payerAcct = int(payerAcct)
     payer = payerAccounts[payerAcct - 1]
 
+    #   Send a server message to F1 to get clientB accounts through F2
     print("Requesting Payee Accounts\n")
     message = "Request F2 Accounts"
     clientSocket.sendto(message.encode(),(serverName, serverPort))
@@ -134,6 +156,7 @@ def newTransaction():
     returnedAccounts = returnedAccounts.decode()
     payeeAccounts = returnedAccounts.split(":")
 
+    #   List retrieved account names to user to select as payee
     y = 1
     for ID in payeeAccounts:
         print(str(y) + "." + " Account Number: " + ID)
@@ -143,18 +166,26 @@ def newTransaction():
     payeeAcct = int(payeeAcct)
     payee = payeeAccounts[payeeAcct - 1]
 
+    #   User enters transaction amount
     txAmount = input("Input Transaction Amount: ")
     txAmount = int(txAmount)
 
+    #   Store Tx information in variable as 12-byte hex
     txHex = str(payer) + str(payee) + str('%08X' % txAmount)
+
+    #   Check if user entered amount + fee is greater than amount in payer account(unconfirmed balance)
+    #   If verify succeeds, subtract amount + fee from unconfirmed balance
+    #   If verify fails, print error message
     verify = verifyBalance(payer, txAmount)
     if verify:
         complete = reduceUnconfirmedBal(payer, txAmount)
         if complete:
+            #   Write tx to Unconfirmed_TxA.txt
             unconfirmedTxAFile = pathlib.Path("Unconfirmed_TxA.txt")
             newUnconfirmed = open(unconfirmedTxAFile, "w+")
             newUnconfirmed.write(txHex + "\n")
             newUnconfirmed.close()
+            #   Send tx to F1 node
             clientSocket.sendto(txHex.encode(), (serverName, serverPort))
             print("Tx Complete")
         else:
@@ -221,6 +252,9 @@ def printMenu():
     print("End with any other input.")
 
 
+#
+#   Menu function to take user input and call each client function
+#
 def menuSelection():
     userSelection = input("Select an option:")
     if userSelection == '1':
@@ -253,5 +287,3 @@ def main():
 
 if __name__== "__main__":
    main()
-
-
