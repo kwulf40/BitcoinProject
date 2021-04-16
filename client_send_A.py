@@ -44,6 +44,7 @@ def getClientAccountInfo():
         activeBalanceA.close()
         return 0
     else:
+        activeBalanceA.close()
         return accountNumList
 
 
