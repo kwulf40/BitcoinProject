@@ -44,6 +44,7 @@ def getClientAccountInfo():
         activeBalanceB.close()
         return 0
     else:
+        activeBalanceB.close()
         return accountNumList
 
 
@@ -83,13 +84,38 @@ def newTransaction():
         print("Account Number: " + ID + "\n")
 
 
+# Prints the account name, unconfirmed balance, and confirmed balance
+# for each account in balanceB.txt
 def currentBalance():
-    #Get account info from balance.txt
+    #Get account info from balanceA.txt
+    clientBFile = pathlib.Path("balanceB.txt")
+    if clientBFile.exists():
+        activeBalanceB = open(clientBFile, "r")
+    else: 
+        print("Error finding balance file")
+        return 0
+    
+
     #loop for each account
-    #Print account name
-    #print unconfirmed balance
-    #print confirmed balance
-    pass
+    if activeBalanceB.mode == 'r':
+        for account in activeBalanceB:
+            acctVar = account.split(":")
+            unconfirmedBal = bytes(acctVar[1], "utf-8")
+            unconfirmedBal.decode("utf-8")
+            unconfirmedBalDec = int(unconfirmedBal, 16)
+            confirmedBal = bytes(acctVar[2], "utf-8")
+            confirmedBal.decode("utf-8")
+            confirmedBalDec = int(confirmedBal, 16)
+            #Print account name
+            #print unconfirmed balance
+            #print confirmed balance
+            print("Account Number: " + acctVar[0] + "\n")
+            print("Uncomfirmed Balance: " + str(unconfirmedBalDec) + "\n")
+            print("Comfirmed Balance: " + str(confirmedBalDec) + "\n")
+        return 1
+    else:
+        print("File Read Error")
+        return 0
 
 
 def unconfirmedTX():
