@@ -13,15 +13,18 @@ serverSocket.bind(('', serverPort))
 print("F2 Operational")
 
 
-#   Test function to display server connection and communication
-#
-def clientTxCheckResponse(clientAddress):
-    returnMessage = "TX Confirmed."
-    serverSocket.sendto(returnMessage.encode(), clientAddress)
-    print("Return Message Sent.")
-    blockMessage = "TX Notification"
-    F1Socket.sendto(blockMessage.encode(), (serverName, connectPortF1))
-    print("Other Block Notified")
+def requestAccountsF1():
+    requestMessage = "Request Client A Accounts"
+    F1Socket.sendto(requestMessage.encode(), (serverName, connectPortF1))
+    acctString, serverAddress = F1Socket.recvfrom(2048)
+    return acctString
+
+
+def requestClientAccounts():
+    requestMessage = "Request Client B Accounts"
+    clientSocket.sendto(requestMessage.encode(), (serverName, connectPortClient))
+    acctString, serverAddress = clientSocket.recvfrom(2048)
+    return acctString
 
 
 def mineBlock():
@@ -52,6 +55,7 @@ def processTX():
     #   Exit
     pass
 
+
 def processBlock():
     # Apppend block to blockchain.txt
     # Remove Tx from Temp_B.txt
@@ -71,19 +75,22 @@ def main():
         # 
         # If transaction, call processTX()
         # If else is block, call processBlock()
-        # If else clientPayeeRequest, send message to F2 for client list
-        # If else serverPayeeRequest, send message to clientA to request clientA accounts
-        # If else f2ListToClient, pass F2 client list to clientA
-        # If else clientListToF2, pass clientA list to F2
 
-        clientTxCheck = re.search("Send TX to block.", incomingMessage)
-        serverNotifCheck = re.search("TX Notification", incomingMessage)
-        if clientTxCheck != None:
-            clientTxCheckResponse(clientAddress)
-        elif serverNotifCheck != None:
-            print("TX Notification Recieved from Block 1")
+        serverRequest = re.search("Request F1 Accounts", incomingMessage)
+        localRequest = re.search("Request Client B Accounts", incomingMessage)
+        if serverRequest != None:
+            print("Requesting Clients From F1")
+            acctString = requestAccountsF1()
+            print("Sending Accounts to Client B")
+            serverSocket.sendto(acctString, clientAddress)
+        elif localRequest != None:
+            print("Getting accounts from Client B")
+            acctString = requestClientAccounts()
+            print("Sending accounts to F1")
+            serverSocket.sendto(acctString, clientAddress)
         else:
             pass
+
 
 if __name__== "__main__":
    main()

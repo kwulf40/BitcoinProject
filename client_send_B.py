@@ -48,17 +48,6 @@ def getClientAccountInfo():
         return accountNumList
 
 
-#   sendClientAccountInfo
-#   Function that retrives a client's accounts and sends them over the servers
-#   to the other client, to be used in creating a new transaction
-#   Sends an array of accounts to the other clients to be used as payees.
-#
-def sendClientAccountInfo():
-    #call getClientAccountInfo
-    #send array to F2 server
-    pass
-
-
 def newTransaction():
 #=========================================
     #   To create a new Tx:
@@ -80,9 +69,24 @@ def newTransaction():
 
     print("Getting Account Numbers\n")
     accounts = getClientAccountInfo()
+
     for ID in accounts:
         print("Account Number: " + ID + "\n")
 
+    payerAcct = input("Select a Payer Account:")
+    payerAcct = int(payerAcct)
+    payer = accounts[payerAcct - 1]
+
+    print("Requesting Payee Accounts")
+    message = "Request F1 Accounts"
+    clientSocket.sendto(message.encode(),(serverName, serverPort))
+    returnedAccounts, serverAddress = clientSocket.recvfrom(2048)
+    returnedAccounts = returnedAccounts.decode()
+    payeeAccounts = returnedAccounts.split(":")
+
+    for ID in payeeAccounts:
+        print("Account Number: " + ID + "\n")
+        
 
 # Prints the account name, unconfirmed balance, and confirmed balance
 # for each account in balanceB.txt
@@ -165,6 +169,7 @@ def menuSelection():
 
 
 def main():
+    getClientAccountInfo()
     userQuit = 0
     while userQuit == 0:
         printMenu()
