@@ -100,18 +100,14 @@ def currentBalance():
     if activeBalanceB.mode == 'r':
         for account in activeBalanceB:
             acctVar = account.split(":")
-            unconfirmedBal = bytes(acctVar[1], "utf-8")
-            unconfirmedBal.decode("utf-8")
-            unconfirmedBalDec = int(unconfirmedBal, 16)
-            confirmedBal = bytes(acctVar[2], "utf-8")
-            confirmedBal.decode("utf-8")
-            confirmedBalDec = int(confirmedBal, 16)
+            unconfirmedBal = int(acctVar[1], 16)
+            confirmedBal = int(acctVar[2], 16)
             #Print account name
             #print unconfirmed balance
             #print confirmed balance
             print("Account Number: " + acctVar[0] + "\n")
-            print("Uncomfirmed Balance: " + str(unconfirmedBalDec) + "\n")
-            print("Comfirmed Balance: " + str(confirmedBalDec) + "\n")
+            print("Uncomfirmed Balance: " + str(unconfirmedBal) + "\n")
+            print("Comfirmed Balance: " + str(confirmedBal) + "\n")
         return 1
     else:
         print("File Read Error")
