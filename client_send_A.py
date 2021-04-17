@@ -254,6 +254,7 @@ def confirmedTX(numOfTX):
 
     #print given number of lines
     readLinesNum = 0
+    #print the numOfTX lines of confirmed transactions
     for tx in reversed(list(activeConfirmedA)):
         print(str(tx))
         readLinesNum += 1
@@ -261,7 +262,7 @@ def confirmedTX(numOfTX):
             break
         else:
             pass
-    #print the numOfTX lines of confirmed transactions
+
 
 
 def printBlockchain():

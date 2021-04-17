@@ -30,7 +30,19 @@ def requestClientAccounts():
 
 
 def mineBlock():
+    hashOper = hashlib.sha256()
+
     # Hash header of last block and store in lastBlockHash
+    blockchain = pathlib.Path("Blockchain.txt")
+    if blockchain.exists():
+        openBlockchain = open(blockchain, "r")
+        for block in reversed(list(openBlockchain)):
+            lastHeader = str(block)[:136]
+            hashOper.update(lastHeader.encode("utf-8"))
+            lastBlockHash = hashOper.hexdigest()
+    else: 
+        lastBlockHash = '0000000000000000000000000000000000000000000000000000000000000000'
+
     # Create Merkle root from 4 Temp_TxA.txt 
     TempTxAFile = pathlib.Path("Temp_TxA.txt")
     openTempTxA = open(TempTxAFile, "r")
@@ -38,20 +50,42 @@ def mineBlock():
     transactions = []
     hashedTx = []
     if openTempTxA.mode == 'r':
-        index = 0
         for transactionLine in openTempTxA:
-            transactions[index] = transactionLine
-            index += 1
-        hashOper = hashlib.sha256()
-        index2 = 0
+            transactions.append(transactionLine)
+        index = 0
         for x in range(0,4):
-            hashOper.update(transactions[index2].encode("utf-8"))
-            hashedTx[index2] = hashOper.hexdigest()
-            index2 += 1
-    # Use function in instructions to find nonce
+            hashOper.update(transactions[index].encode("utf-8"))
+            hashedTx.append(hashOper.hexdigest())
+            index += 1
+        hashOper.update((hashedTx[0] + hashedTx[1]).encode("utf-8"))
+        hashAB = hashOper.hexdigest()
+        hashOper.update((hashedTx[2] + hashedTx[3]).encode("utf-8"))
+        hashCD = hashOper.hexdigest()
+        hashOper.update((hashAB + hashCD).encode("utf-8"))
+        merkleRoot = hashOper.hexdigest()
+        print("Merkle: " + merkleRoot)
+    else:
+        print("Error opening temp for mining")
+        return 0
+
+    #   Use function in instructions to find nonce
+    nonce = 0 
+    while True: 
+        block_header = str(nonce) + lastBlockHash + merkleRoot
+        hashOper.update(block_header.encode("utf-8")) 
+        hashValue = hashOper.hexdigest() 
+        print('nonce:{0}, hash:{1}'.format(nonce, hashValue)) 
+        nounceFound = True 
+        for i in range(4): 
+            if hashValue[i]!='0': 
+                nounceFound = False 
+        if nounceFound: 
+            break 
+        else: nonce = nonce + 1
+
     # Combine header and body and store as 116-byte Hex "newBlock"
-    # return newBlock
-    pass
+    newBlock = block_header + transactions[0].rstrip('\n') + transactions[1].rstrip('\n') + transactions[2].rstrip('\n') + transactions[3].rstrip('\n')
+    return newBlock
 
 
 def processTx(transaction, turn):
@@ -93,7 +127,8 @@ def processTx(transaction, turn):
         turn += 1
         if (turn % 2 == 1):
             print("My turn!")
-            #newBlock = mineBlock()
+            newBlock = mineBlock()
+            print("Block from F1: " + newBlock)
             #processBlock(newBlock)
             return turn
         else:
