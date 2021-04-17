@@ -1,6 +1,5 @@
 import pathlib
 import fileinput
-#from file_read_backwards import FileReadBackwards
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -255,20 +254,14 @@ def confirmedTX(numOfTX):
 
     #print given number of lines
     readLinesNum = 0
-    #with FileReadBackwards(confirmedTxAFile, encoding="utf-8") as file:
-        #for tx in file:
-            #print(str(tx))
-            #print(readLinesNum)
-            #print(numOfTX)
-            #readLinesNum += readLinesNum
-            #if readLinesNum == numOfTX:
-                #break
-        #return 1
-    #else:
-        #print("Error reading Confirmed")
-        #return 0
+    for tx in reversed(list(activeConfirmedA)):
+        print(str(tx))
+        readLinesNum += 1
+        if readLinesNum == int(numOfTX):
+            break
+        else:
+            pass
     #print the numOfTX lines of confirmed transactions
-    pass
 
 
 def printBlockchain():
@@ -319,6 +312,7 @@ def main():
         printMenu()
         userQuit = menuSelection()
     clientSocket.close()
+
 
 if __name__== "__main__":
    main()

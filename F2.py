@@ -1,4 +1,6 @@
 import re
+import pathlib
+import hashlib
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -30,13 +32,29 @@ def requestClientAccounts():
 def mineBlock():
     # Hash header of last block and store in lastBlockHash
     # Create Merkle root from 4 Temp_B.txt tx
+    TempTxAFile = pathlib.Path("Temp_TxA.txt")
+    openTempTxA = open(TempTxAFile, "r")
+
+    transactions = []
+    hashedTx = []
+    if openTempTxA.mode == 'r':
+        index = 0
+        for transactionLine in openTempTxA:
+            transactions[index] = transactionLine
+            index += 1
+        hashOper = hashlib.sha256()
+        index2 = 0
+        for x in range(0,4):
+            hashOper.update(transactions[index2].encode("utf-8"))
+            hashedTx[index2] = hashOper.hexdigest()
+            index2 += 1
     # Use function in instructions to find nonce
     # Combine header and body and store as 116-byte Hex "newBlock"
     # return newBlock
     pass
 
 
-def processTX():
+def processTx(transaction, turn):
     # Append Tx to Temp_B.txt
     # Check if Tx Payer is client B
     # If true -> send tx to F1
@@ -53,18 +71,66 @@ def processTX():
     #   Send block to other server
     #   Print the new block
     #   Exit
-    pass
+
+    # Append Tx to Temp_TxA.txt
+    TempTxBFile = pathlib.Path("Temp_TxB.txt")
+    openTempTxB = open(TempTxBFile, "a")
+    openTempTxB.write(transaction + "\n")
+    openTempTxB.close()
+
+    # Check if Tx Payer is client B
+    # If true -> send tx to F1
+    if transaction[0] == 'B':
+        F1Socket.sendto(transaction.encode(), (serverName, connectPortF1))
+    else:
+        pass
+
+
+    # Check if number of transactions in Temp_TxB.txt == 4
+    blockFull = checkTempTx()
+    print("Block full: " + str(blockFull))
+    if blockFull:
+        turn += 1
+        if (turn % 2 == 1):
+            print("My turn!")
+            #newBlock = mineBlock()
+            #processBlock(newBlock)
+            return turn
+        else:
+            return turn
+    else:
+        pass
 
 
 def processBlock():
     # Apppend block to blockchain.txt
     # Remove Tx from Temp_B.txt
     # Check Tx and send confirmation to clientB
+    # Send block to F1
     # Exit
     pass
 
 
+def checkTempTx():
+    # Checks the Temp_TxB file and returns true if there are 4
+    # transactions
+    TempTxBFile = pathlib.Path("Temp_TxB.txt")
+    openTempTxB = open(TempTxBFile, "r")
+
+    if openTempTxB.mode == 'r':
+        lineCount = 0
+        for transactionLine in openTempTxB:
+            lineCount += 1
+        if lineCount == 4:
+            return 1
+        else:
+            return 0
+    else:
+        pass 
+
+
 def main():
+    turn = 2
     while 1:
         print("F2 Working...")
         message, clientAddress = serverSocket.recvfrom(2048)
@@ -99,7 +165,9 @@ def main():
         #if transactionCheck is true, the message is tx information to be stored in temp_TxB.txt    
         elif transactionCheck:
             print("Received Tx!")
-            print(incomingMessage)
+            newTurn = processTx(incomingMessage, turn)
+            if newTurn:
+                turn = newTurn
         else:
             pass
 

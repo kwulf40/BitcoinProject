@@ -245,8 +245,23 @@ def unconfirmedTX():
 
 def confirmedTX(numOfTX):
     #open Confirmed_TxB.txt
+    confirmedTxBFile = pathlib.Path("Confirmed_TxB.txt")
+    if confirmedTxBFile.exists():
+        activeConfirmedB = open(confirmedTxBFile, "r")
+    else: 
+        print("Error finding balance file")
+        return 0
+
+    #print given number of lines
+    readLinesNum = 0
     #print the numOfTX lines of confirmed transactions
-    pass
+    for tx in reversed(list(activeConfirmedB)):
+        print(str(tx))
+        readLinesNum += 1
+        if readLinesNum == int(numOfTX):
+            break
+        else:
+            pass
 
 
 def printBlockchain():
