@@ -116,7 +116,7 @@ def reduceUnconfirmedBal(payer, txAmount):
 
 
 def newTransaction():
-#=========================================
+    #=========================================
     #   To create a new Tx:
     #
     #   call getClientAccountInfo
@@ -182,7 +182,7 @@ def newTransaction():
         if complete:
             #   Write tx to Unconfirmed_TxB.txt
             unconfirmedTxBFile = pathlib.Path("Unconfirmed_TxB.txt")
-            newUnconfirmed = open(unconfirmedTxBFile, "w+")
+            newUnconfirmed = open(unconfirmedTxBFile, "a+")
             newUnconfirmed.write(txHex + "\n")
             newUnconfirmed.close()
             #   Send tx to F2 node
@@ -312,6 +312,7 @@ def main():
         printMenu()
         userQuit = menuSelection()
     clientSocket.close()
+
 
 if __name__== "__main__":
    main()

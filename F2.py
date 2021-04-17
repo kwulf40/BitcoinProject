@@ -33,7 +33,7 @@ def mineBlock():
     hashOper = hashlib.sha256()
 
     # Hash header of last block and store in lastBlockHash
-    blockchain = pathlib.Path("Blockchain.txt")
+    blockchain = pathlib.Path("BlockchainB.txt")
     if blockchain.exists():
         openBlockchain = open(blockchain, "r")
         for block in reversed(list(openBlockchain)):
@@ -67,6 +67,7 @@ def mineBlock():
     else:
         print("Error opening temp for mining")
         return 0
+    openTempTxB.close()
 
     # Use function in instructions to find nonce
     nonce = 0 
@@ -129,7 +130,11 @@ def processTx(transaction, turn):
             print("My turn!")
             newBlock = mineBlock()
             print("Block from F2: " + newBlock)
-            #processBlock(newBlock)
+            #   Send block to other server
+            F1Socket.sendto(newBlock.encode(), (serverName, connectPortF1))
+            #   Add mining fee and total Tx fee to node's account balanceF1.txt
+            #   Apppend block to blockchain.txt
+            processBlock(newBlock)
             return turn
         else:
             return turn
@@ -137,13 +142,19 @@ def processTx(transaction, turn):
         pass
 
 
-def processBlock():
+def processBlock(block):
     # Apppend block to blockchain.txt
-    # Remove Tx from Temp_B.txt
-    # Check Tx and send confirmation to clientB
-    # Send block to F1
+    blockchainFile = pathlib.Path("BlockchainB.txt")
+    openBlockchainB = open(blockchainFile, "a")
+    openBlockchainB.write(block + "\n")
+    openBlockchainB.close()
+    # Remove Tx from Temp_TxA.txt  
+    print("Clearing Temp_TxB")
+    TempTxBFile = pathlib.Path("Temp_TxB.txt")
+    modifiedTempTxB = open(TempTxBFile, "w+")
+    modifiedTempTxB.close()
+    # Check Tx and send confirmation to clientA
     # Exit
-    pass
 
 
 def checkTempTx():
@@ -180,7 +191,11 @@ def main():
         # serverRequest will be true if the message is a request from Client B for the F1 client A accounts
         #
         # localRequest will be true if the message is a request from F1 for the local Client B accounts 
-        transactionCheck = re.match(r'([A-B])([0]{6})([1-2])', incomingMessage)
+        transactionCheck = re.match(r'(^([A-B])([0]{6})([1-2]))', incomingMessage)
+        if len(incomingMessage) > 200: 
+            blockCheck = True
+        else:
+            blockCheck = False
         serverRequest = re.search("Request F1 Accounts", incomingMessage)
         localRequest = re.search("Request Client B Accounts", incomingMessage)
 
@@ -203,6 +218,9 @@ def main():
             newTurn = processTx(incomingMessage, turn)
             if newTurn:
                 turn = newTurn
+        elif blockCheck:
+            print("Recieved Block!")
+            processBlock(incomingMessage)
         else:
             pass
 

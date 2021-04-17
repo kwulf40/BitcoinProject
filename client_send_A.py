@@ -116,7 +116,7 @@ def reduceUnconfirmedBal(payer, txAmount):
                 
 
 def newTransaction():
-        #=========================================
+    #=========================================
     #   To create a new Tx:
     #
     #   call getClientAccountInfo
@@ -182,7 +182,7 @@ def newTransaction():
         if complete:
             #   Write tx to Unconfirmed_TxA.txt
             unconfirmedTxAFile = pathlib.Path("Unconfirmed_TxA.txt")
-            newUnconfirmed = open(unconfirmedTxAFile, "w+")
+            newUnconfirmed = open(unconfirmedTxAFile, "a+")
             newUnconfirmed.write(txHex + "\n")
             newUnconfirmed.close()
             #   Send tx to F1 node
@@ -262,7 +262,6 @@ def confirmedTX(numOfTX):
             break
         else:
             pass
-
 
 
 def printBlockchain():
