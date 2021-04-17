@@ -1,6 +1,7 @@
 import re
 import pathlib
 import hashlib
+import fileinput
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -13,6 +14,13 @@ clientSocket = socket(AF_INET, SOCK_DGRAM)
 F1Socket = socket(AF_INET, SOCK_DGRAM)
 serverSocket.bind(('', serverPort))
 print("F2 Operational")
+
+
+def createBalance():
+    balanceF2File = pathlib.Path("balanceF2.txt")
+    initialBalanceF2 = open(balanceF2File, "w+")
+    initialBalanceF2.write("F2000001:00000000\n")
+    initialBalanceF2.close()
 
 
 def requestAccountsF1():
@@ -89,6 +97,33 @@ def mineBlock():
     return newBlock
 
 
+def addFees():
+    fees = 38
+    modifiedFlag = 0
+    modifiedBalance = "balanceF2.txt"
+    with fileinput.FileInput(modifiedBalance, inplace=True) as file:
+        for line in file:
+            tempAcctInfo = str(line)
+            acctVar = line.split(":")
+            if acctVar[0] == "F2000001":
+                newAcctVar = []
+                balance = int(acctVar[1], 16)
+                newBal = balance + fees
+                newAcctVar.append(acctVar[0])
+                newAcctVar.append(str('%08X' % newBal))
+                newAcctInfo = (newAcctVar[0] + ":" + newAcctVar[1])
+                print(line.replace(tempAcctInfo, newAcctInfo), end='')
+                modifiedFlag = 1
+            else:
+                print(line, end='')
+    file.close()
+    print("Awarded account: " + newAcctVar[0] + " with fees for new balance of: " + newBal)
+    if modifiedFlag:
+        return 1
+    else:
+        return 0
+
+
 def processTx(transaction, turn):
     # Append Tx to Temp_B.txt
     # Check if Tx Payer is client B
@@ -133,6 +168,7 @@ def processTx(transaction, turn):
             #   Send block to other server
             F1Socket.sendto(newBlock.encode(), (serverName, connectPortF1))
             #   Add mining fee and total Tx fee to node's account balanceF1.txt
+            addFees()
             #   Apppend block to blockchain.txt
             processBlock(newBlock)
             return turn
@@ -176,7 +212,8 @@ def checkTempTx():
 
 
 def main():
-    turn = 2
+    createBalance()
+    turn = 1
     while 1:
         print("F2 Working...")
         message, clientAddress = serverSocket.recvfrom(2048)

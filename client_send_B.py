@@ -92,7 +92,7 @@ def reduceUnconfirmedBal(payer, txAmount):
     totalTxAmount = txAmount + 2
     modifiedFlag = 0
     modifiedBalance = "balanceB.txt"
-    with fileinput.FileInput(modifiedBalance, inplace=True, backup='.bak') as file:
+    with fileinput.FileInput(modifiedBalance, inplace=True) as file:
         for line in file:
             tempAcctInfo = str(line)
             acctVar = line.split(":")
