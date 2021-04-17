@@ -1,5 +1,6 @@
 import pathlib
 import fileinput
+#from file_read_backwards import FileReadBackwards
 from socket import socket 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -225,13 +226,47 @@ def currentBalance():
 
 
 def unconfirmedTX():
-    #open Unconfirmed_T.txt
+    #open Unconfirmed_TxA.txt
+    unconfirmedTxAFile = pathlib.Path("Unconfirmed_TxA.txt")
+    if unconfirmedTxAFile.exists():
+        activeUnconfirmedA = open(unconfirmedTxAFile, "r")
+    else: 
+        print("Error finding balance file")
+        return 0
+
     #print each line
-    pass
+    if activeUnconfirmedA.mode == 'r':
+        for tx in activeUnconfirmedA:
+            print(str(tx))
+        return 1
+    else:
+        print("Error reading Unconfirmed")
+        return 0
 
 
 def confirmedTX(numOfTX):
-    #open Confirmed_T.txt
+    #open Confirmed_TxA.txt
+    confirmedTxAFile = pathlib.Path("Confirmed_TxA.txt")
+    if confirmedTxAFile.exists():
+        activeConfirmedA = open(confirmedTxAFile, "r")
+    else: 
+        print("Error finding balance file")
+        return 0
+
+    #print given number of lines
+    readLinesNum = 0
+    #with FileReadBackwards(confirmedTxAFile, encoding="utf-8") as file:
+        #for tx in file:
+            #print(str(tx))
+            #print(readLinesNum)
+            #print(numOfTX)
+            #readLinesNum += readLinesNum
+            #if readLinesNum == numOfTX:
+                #break
+        #return 1
+    #else:
+        #print("Error reading Confirmed")
+        #return 0
     #print the numOfTX lines of confirmed transactions
     pass
 

@@ -225,13 +225,26 @@ def currentBalance():
 
 
 def unconfirmedTX():
-    #open Unconfirmed_T.txt
+    #open Unconfirmed_TxB.txt
+    UnconfirmedTxBFile = pathlib.Path("Unconfirmed_TxB.txt")
+    if UnconfirmedTxBFile.exists():
+        activeUnconfirmedB = open(UnconfirmedTxBFile, "r")
+    else: 
+        print("Error finding balance file")
+        return 0
+
     #print each line
-    pass
+    if activeUnconfirmedB.mode == 'r':
+        for tx in activeUnconfirmedB:
+            print(str(tx))
+        return 1
+    else:
+        print("Error reading Unconfirmed")
+        return 0
 
 
 def confirmedTX(numOfTX):
-    #open Confirmed_T.txt
+    #open Confirmed_TxB.txt
     #print the numOfTX lines of confirmed transactions
     pass
 
