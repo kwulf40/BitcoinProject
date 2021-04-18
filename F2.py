@@ -45,7 +45,7 @@ def mineBlock():
     if blockchain.exists():
         openBlockchain = open(blockchain, "r")
         for block in reversed(list(openBlockchain)):
-            lastHeader = str(block)[:136]
+            lastHeader = str(block)[:134]
             hashOper.update(lastHeader.encode("utf-8"))
             lastBlockHash = hashOper.hexdigest()
     else: 
@@ -83,7 +83,7 @@ def mineBlock():
         block_header = str(nonce) + lastBlockHash + merkleRoot
         hashOper.update(block_header.encode("utf-8")) 
         hashValue = hashOper.hexdigest() 
-        print('nonce:{0}, hash:{1}'.format(nonce, hashValue)) 
+        #print('nonce:{0}, hash:{1}'.format(nonce, hashValue)) 
         nounceFound = True 
         for i in range(4): 
             if hashValue[i]!='0': 
@@ -117,7 +117,7 @@ def addFees():
             else:
                 print(line, end='')
     file.close()
-    print("Awarded account: " + newAcctVar[0] + " with fees for new balance of: " + newBal)
+    print("Awarded account: " + newAcctVar[0] + " with fees for new balance of: " + str(newBal))
     if modifiedFlag:
         return 1
     else:
@@ -181,16 +181,28 @@ def processTx(transaction, turn):
 def processBlock(block):
     # Apppend block to blockchain.txt
     blockchainFile = pathlib.Path("BlockchainB.txt")
-    openBlockchainB = open(blockchainFile, "a")
+    openBlockchainB = open(blockchainFile, "a+")
     openBlockchainB.write(block + "\n")
     openBlockchainB.close()
-    # Remove Tx from Temp_TxA.txt  
+    # Remove Tx from Temp_TxB.txt  
     print("Clearing Temp_TxB")
     TempTxBFile = pathlib.Path("Temp_TxB.txt")
     modifiedTempTxB = open(TempTxBFile, "w+")
     modifiedTempTxB.close()
-    # Check Tx and send confirmation to clientA
-    # Exit
+    # Check Tx and send confirmation to clientB
+    blockTxBody = str(block)[133:]
+    print("Tx body: " + blockTxBody)
+    txInfo = []
+    n = 24
+    for index in range(0, len(blockTxBody), n):
+        txInfo.append(blockTxBody[index : index + n])
+    for tx in txInfo:
+        stringTx = str(tx)
+        print("Tx: " + stringTx)
+        if stringTx[0] == 'B' or stringTx[8] == 'B':
+            txMessage = stringTx
+            print("Sending tx for confirmation " + stringTx)
+            clientSocket.sendto(txMessage.encode(), (serverName, connectPortClient))
 
 
 def checkTempTx():
