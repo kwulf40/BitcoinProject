@@ -120,7 +120,7 @@ def verifyTx(transaction):
 
             newUnconfirmed = open(unconfirmedTxAFile, "w")
             for tx in unconfirmedTx:
-                if line.strip("\n") != str(transaction):
+                if tx.strip("\n") != str(transaction):
                     newUnconfirmed.write(tx)
             newUnconfirmed.close()
 

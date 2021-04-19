@@ -45,7 +45,7 @@ def mineBlock():
     if blockchain.exists():
         openBlockchain = open(blockchain, "r")
         for block in reversed(list(openBlockchain)):
-            lastHeader = str(block)[:134]
+            lastHeader = str(block)[:137]
             hashOper.update(lastHeader.encode("utf-8"))
             lastBlockHash = hashOper.hexdigest()
     else: 
@@ -80,7 +80,7 @@ def mineBlock():
     #   Use function in instructions to find nonce
     nonce = 0 
     while True: 
-        block_header = str(nonce) + lastBlockHash + merkleRoot
+        block_header = str(nonce).zfill(8) + lastBlockHash + merkleRoot
         hashOper.update(block_header.encode("utf-8")) 
         hashValue = hashOper.hexdigest() 
         #print('nonce:{0}, hash:{1}'.format(nonce, hashValue)) 
@@ -192,7 +192,7 @@ def processBlock(block):
     modifiedTempTxA.close()
 
     # Check Tx and send confirmation to clientA
-    blockTxBody = str(block)[133:]
+    blockTxBody = str(block)[136:]
     print("Tx body: " + blockTxBody)
     txInfo = []
     n = 24
