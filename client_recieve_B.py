@@ -119,8 +119,13 @@ def verifyTx(transaction):
             activeUnconfirmedB.close()
 
             newUnconfirmed = open(unconfirmedTxBFile, "w")
+            lineCheck = 0
             for tx in unconfirmedTx:
                 if tx.strip("\n") != str(transaction):
+                    newUnconfirmed.write(tx)
+                elif tx.strip("\n") == str(transaction) and lineCheck < 1:
+                    lineCheck += 1
+                else:
                     newUnconfirmed.write(tx)
             newUnconfirmed.close()
 
@@ -185,6 +190,7 @@ def main():
         # on received tx to confirm from block chain,
         # call verifyTx()
         elif transactionCheck:
+            print("Confirmed Tx recieved from server: " + str(incomingMessage))
             verifyTx(incomingMessage)
         else:
             pass

@@ -66,7 +66,7 @@ def verifyBalance(payer, txAmount):
                 unconfirmedBal = int(acctVar[1], 16)
                 checkBalance = unconfirmedBal - totalAmount
                 if checkBalance < 0:
-                    print("Not enough funds in Account: " + payer)
+                    print("\nNot enough funds in Account: " + payer)
                     return 0
                 else:
                     return 1
@@ -135,7 +135,7 @@ def newTransaction():
     #   Send tx to F2 node
 
     #   call getClientAccountInfo
-    print("Getting Account Numbers\n")
+    print("\nGetting Account Numbers\n")
     accounts = getClientAccountInfo()
 
     #   List to user and they select an account as payer
@@ -144,12 +144,12 @@ def newTransaction():
         print("Account Number: " + ID)
         x += 1
 
-    payerAcct = input("Select a Payer Account:")
+    payerAcct = input("\nSelect a Payer Account:")
     payerAcct = int(payerAcct)
     payer = accounts[payerAcct - 1]
 
     #   Send a server message to F1 to get clientB accounts through F2
-    print("Requesting Payee Accounts\n")
+    print("\nRequesting Payee Accounts\n")
     message = "Request F1 Accounts"
     clientSocket.sendto(message.encode(),(serverName, serverPort))
     returnedAccounts, serverAddress = clientSocket.recvfrom(2048)
@@ -162,12 +162,12 @@ def newTransaction():
         print("Account Number: " + ID)
         y += 1
 
-    payeeAcct = input("Select a Payee Account:")
+    payeeAcct = input("\nSelect a Payee Account:")
     payeeAcct = int(payeeAcct)
     payee = payeeAccounts[payeeAcct - 1]
 
     #   User enters transaction amount
-    txAmount = input("Input Transaction Amount: ")
+    txAmount = input("\nInput Transaction Amount: ")
     txAmount = int(txAmount)
     
     #   Store Tx information in variable as 12-byte hex
@@ -187,11 +187,11 @@ def newTransaction():
             newUnconfirmed.close()
             #   Send tx to F2 node
             clientSocket.sendto(txHex.encode(), (serverName, serverPort))
-            print("Tx Complete")
+            print("\n" + payer + " pays to " + payee + " the amount of: " + str(txAmount) + " Bc.\n")
         else:
             print("Tx Failed")
     else:
-        print("Verify Failed")
+        print("\nVerification Failed\n")
 
 
 # Prints the account name, unconfirmed balance, and confirmed balance
@@ -202,7 +202,7 @@ def currentBalance():
     if clientBFile.exists():
         activeBalanceB = open(clientBFile, "r")
     else: 
-        print("Error finding balance file")
+        print("Error finding Balance file\n")
         return 0
     
 
@@ -220,7 +220,7 @@ def currentBalance():
             print("Comfirmed Balance: " + str(confirmedBal) + "\n")
         return 1
     else:
-        print("File Read Error")
+        print("Balance file Read Error \n")
         return 0
 
 
@@ -230,16 +230,25 @@ def unconfirmedTX():
     if UnconfirmedTxBFile.exists():
         activeUnconfirmedB = open(UnconfirmedTxBFile, "r")
     else: 
-        print("Error finding balance file")
+        print("Error finding Unconfirmed Tx File\n")
         return 0
 
     #print each line
     if activeUnconfirmedB.mode == 'r':
-        for tx in activeUnconfirmedB:
-            print(str(tx))
+        check = activeUnconfirmedB.read(1)
+        if check:
+            i = 1
+            activeUnconfirmedB.seek(0)
+            for tx in activeUnconfirmedB:
+                amount = str(tx)[16:]
+                amount = int(amount, 16)
+                print("Transaction #" + str(i) + ": " + str(tx)[:8] + " will be paid to " + str(tx)[8:16] + " the amount of " + str(amount) + " Bc.\n")
+                i += 1
+        else: 
+            print("\nNo unconfirmed transactions.\n")
         return 1
     else:
-        print("Error reading Unconfirmed")
+        print("\nError reading Unconfirmed Tx File\n")
         return 0
 
 
@@ -249,14 +258,16 @@ def confirmedTX(numOfTX):
     if confirmedTxBFile.exists():
         activeConfirmedB = open(confirmedTxBFile, "r")
     else: 
-        print("Error finding balance file")
+        print("\nError finding Confirmed Tx File\n")
         return 0
 
     #print given number of lines
     readLinesNum = 0
     #print the numOfTX lines of confirmed transactions
     for tx in reversed(list(activeConfirmedB)):
-        print(str(tx))
+        amount = str(tx)[16:]
+        amount = int(amount, 16)
+        print("Transaction #" + str(readLinesNum + 1) + ": " + str(tx)[:8] + " paid " + str(tx)[8:16] + " the amount of " + str(amount) + " Bc.\n")
         readLinesNum += 1
         if readLinesNum == int(numOfTX):
             break
@@ -295,7 +306,7 @@ def menuSelection():
         unconfirmedTX()
         return 0
     elif userSelection == '4':
-        numOfTX = input("Enter number of confirmed transactions you wish to view:")
+        numOfTX = input("\nEnter number of confirmed transactions you wish to view: ")
         confirmedTX(numOfTX)
         return 0
     elif userSelection == '5':

@@ -117,7 +117,7 @@ def addFees():
             else:
                 print(line, end='')
     file.close()
-    print("Awarded account: " + newAcctVar[0] + " with fees for new balance of: " + str(newBal))
+    print("\nAwarded account: " + newAcctVar[0] + " with fees for new balance of: " + str(newBal) + " Bc.\n")
     if modifiedFlag:
         return 1
     else:
@@ -158,11 +158,10 @@ def processTx(transaction, turn):
 
     # Check if number of transactions in Temp_TxA.txt == 4
     blockFull = checkTempTx()
-    print("Block full: " + str(blockFull))
     if blockFull:
         turn += 1
         if (turn % 2 == 1):
-            print("My turn!")
+            print("Mining Block...\n")
             newBlock = mineBlock()
             print("Block from F1: " + newBlock)
             #   Send block to other server
@@ -181,19 +180,17 @@ def processTx(transaction, turn):
 def processBlock(block):
     # Apppend block to blockchain.txt
     blockchainFile = pathlib.Path("BlockchainA.txt")
-    openBlockchainA = open(blockchainFile, "a")
+    openBlockchainA = open(blockchainFile, "a+")
     openBlockchainA.write(block + "\n")
     openBlockchainA.close()
 
     # Remove Tx from Temp_TxA.txt  
-    print("Clearing Temp_TxA")
     TempTxAFile = pathlib.Path("Temp_TxA.txt")
     modifiedTempTxA = open(TempTxAFile, "w+")
     modifiedTempTxA.close()
 
     # Check Tx and send confirmation to clientA
     blockTxBody = str(block)[136:]
-    print("Tx body: " + blockTxBody)
     txInfo = []
     n = 24
     #store each tx in the block body
@@ -203,10 +200,9 @@ def processBlock(block):
     #if client account found, send the tx to the client for confirmation
     for tx in txInfo:
         stringTx = str(tx)
-        print("Tx: " + stringTx)
         if stringTx[0] == 'A' or stringTx[8] == 'A':
             txMessage = stringTx
-            print("Sending tx for confirmation " + stringTx)
+            print("Sending tx for confirmation: " + stringTx)
             clientSocket.sendto(txMessage.encode(), (serverName, connectPortClient))
 
 
@@ -232,7 +228,7 @@ def main():
     createBalance()
     turn = 2
     while 1:
-        print("F1 Working...")
+        print("\nF1 Waiting...")
         message, clientAddress = serverSocket.recvfrom(2048)
         incomingMessage = message.decode()
 
@@ -268,12 +264,12 @@ def main():
             serverSocket.sendto(acctString, clientAddress)
         #if transactionCheck is true, the message is tx information to be stored in temp_TxA.txt 
         elif transactionCheck:
-            print("Received Tx!")
+            print("Received Transaction.")
             newTurn = processTx(incomingMessage, turn)
             if newTurn:
                 turn = newTurn
         elif blockCheck:
-            print("Recieved Block!")
+            print("Recieved Block.")
             processBlock(incomingMessage)
         else:
             pass
