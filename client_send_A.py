@@ -35,10 +35,11 @@ def getClientAccountInfo():
             accountNumList.append(acctNum[0])
     else:
         print("Error with file")
+        return 0
     
     #returns list
     if not accountNumList:
-        print ("Error in creating account lists")
+        print("Error in creating account lists")
         activeBalanceA.close()
         return 0
     else:
@@ -59,6 +60,8 @@ def verifyBalance(payer, txAmount):
     clientAFile = pathlib.Path("balanceA.txt")
     if clientAFile.exists():
         activeBalanceA = open(clientAFile, "r")
+    else:
+        return 0
     if activeBalanceA.mode == 'r':
         for account in activeBalanceA:
             acctVar = account.split(":")
@@ -264,15 +267,26 @@ def confirmedTX(numOfTX):
     #print given number of lines
     readLinesNum = 0
     #print the numOfTX lines of confirmed transactions
-    for tx in reversed(list(activeConfirmedA)):
-        amount = str(tx)[16:]
-        amount = int(amount, 16)
-        print("Transaction #" + str(readLinesNum + 1) + ": " + str(tx)[:8] + " paid " + str(tx)[8:16] + " the amount of " + str(amount) + " Bc.\n")
-        readLinesNum += 1
-        if readLinesNum == int(numOfTX):
-            break
+    if activeConfirmedA.mode == 'r':
+        check = activeConfirmedA.read(1)
+        if check:
+            i = 1
+            activeConfirmedA.seek(0)
+            for tx in reversed(list(activeConfirmedA)):
+                amount = str(tx)[16:]
+                amount = int(amount, 16)
+                print("Transaction #" + str(readLinesNum + 1) + ": " + str(tx)[:8] + " paid " + str(tx)[8:16] + " the amount of " + str(amount) + " Bc.\n")
+                readLinesNum += 1
+                if readLinesNum == int(numOfTX):
+                    break
+                else:
+                    pass
+            else:
+                print("\nNo confirmed transactions.\n")
+            return 1
         else:
-            pass
+            print("\nError reading confirmed Tx File\n")
+            return 0
 
 
 def printBlockchain():

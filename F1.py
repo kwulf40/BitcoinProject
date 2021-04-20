@@ -43,6 +43,7 @@ def requestBlockchain():
         activeBlockchain = open(blockchainFile, "r")
     else: 
         print("\nError finding Blockchain File\n")
+        return 0
 
     longBlockchain = ""
     for block in activeBlockchain:

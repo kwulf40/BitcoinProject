@@ -38,6 +38,7 @@ def getClientAccountInfo():
             accountNumList.append(acctNum[0])
     else:
         print("Error with file")
+        return 0
     
     #return list
     if not accountNumList:
