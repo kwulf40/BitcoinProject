@@ -278,12 +278,30 @@ def confirmedTX(numOfTX):
 def printBlockchain():
     #Extra Credit
     #Retrieve blockchain.txt info from controling F#
+    message = "Request Blockchain"
+    clientSocket.sendto(message.encode(),(serverName, serverPort))
+    returnedBlockchain, serverAddress = clientSocket.recvfrom(2048)
     #Print blockchain info
-    pass
+    print("\nPrinting blockchain: \n")
+    longBlockchain = returnedBlockchain.decode()
+    blockchain = str(longBlockchain).split(":")
+
+    blockNum = 1
+    for block in blockchain:
+        print("\nBlock: " + str(blockNum))
+        print("Nonce (4-byte): " + str(block)[:8])
+        print("Last Block Hash (32-byte): " + str(block)[8:72])
+        print("Merkle Root (32-btye): " + str(block)[72:136])
+        print("Tx1: (12-byte): " + str(block)[136:160])
+        print("Tx2: (12-byte): " + str(block)[160:184])
+        print("Tx3: (12-byte): " + str(block)[184:208])
+        print("Tx4: (12-byte): " + str(block)[208:232])
+        blockNum += 1
+    return 1
 
 
 def printMenu():
-    print("1. Enter a new transaction.")
+    print("\n1. Enter a new transaction.")
     print("2. Check current balance.")
     print("3. View unconfirmed transactions.")
     print("4. Print the last x number of confirmed transactions.")

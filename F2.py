@@ -37,6 +37,23 @@ def requestClientAccounts():
     return acctString
 
 
+def requestBlockchain():
+    blockchainFile = pathlib.Path("BlockchainB.txt")
+    if blockchainFile.exists():
+        activeBlockchain = open(blockchainFile, "r")
+    else: 
+        print("\nError finding Blockchain File\n")
+
+    longBlockchain = ""
+    for block in activeBlockchain:
+        longBlockchain = longBlockchain + (str(block) + ":")
+    longBlockchain = longBlockchain[:-1]
+
+    activeBlockchain.close()
+
+    return longBlockchain
+    
+
 def mineBlock():
     hashOper = hashlib.sha256()
 
@@ -246,6 +263,7 @@ def main():
             blockCheck = True
         else:
             blockCheck = False
+        blockchainRequest = re.search("Request Blockchain", incomingMessage)
         serverRequest = re.search("Request F1 Accounts", incomingMessage)
         localRequest = re.search("Request Client B Accounts", incomingMessage)
 
@@ -262,6 +280,13 @@ def main():
             acctString = requestClientAccounts()
             print("Sending accounts to F1")
             serverSocket.sendto(acctString, clientAddress)
+        #if blockchainRequest is true, get blockchain info and send back to client A
+        elif blockchainRequest:
+            print("Retrieving Blockchain")
+            blockchain = requestBlockchain()
+            blockMessage = blockchain.encode()
+            print("Sending Blockchain")
+            serverSocket.sendto(blockMessage, clientAddress)
         #if transactionCheck is true, the message is tx information to be stored in temp_TxB.txt    
         elif transactionCheck:
             print("Received Transaction")
